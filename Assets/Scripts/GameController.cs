@@ -12,16 +12,16 @@ public class GameController : MonoBehaviour
     [HideInInspector]
     public Color hitColor, failColor;
 
-    private GameObject[] walls2;
+    private GameObject[] walls2, walls1;
 
-    private int wallsSpawnNumber = 11;
+    private int wallsSpawnNumber = 11, wallsCount = 0, score;
     private float z = 7;
 
     private bool colorBump;
     void Awake()
     {
         instance = this;
-        GenerateColors();
+        PlayerPrefs.GetInt("Level", 1);
     }
 
     void Start()
@@ -29,10 +29,28 @@ public class GameController : MonoBehaviour
         GenerateLevel();
     }
 
+    private void Update()
+    {
+        SumUpWalls();
+    }
+
     public void GenerateLevel()
     {
-        wallsSpawnNumber = 12;
-        z = 7;
+        GenerateColors();
+
+        if (PlayerPrefs.GetInt("Level") >= 1 && PlayerPrefs.GetInt("Level") <= 4)
+        {
+            wallsSpawnNumber = 12;
+        }
+        else if (PlayerPrefs.GetInt("Level") >= 5 && PlayerPrefs.GetInt("Level") <= 10)
+        {
+            wallsSpawnNumber = 13;
+        }
+        else
+        {
+            wallsSpawnNumber = 14;
+        }
+            z = 7;
 
         DeleteWalls();
 
@@ -50,6 +68,29 @@ public class GameController : MonoBehaviour
         Ball.SetColor(hitColor);
     }
 
+    void SumUpWalls()
+    {
+        walls1 = GameObject.FindGameObjectsWithTag("Wall1");
+
+        if (walls1.Length > wallsCount)
+            wallsCount = walls1.Length;
+
+        if(wallsCount > walls1.Length)
+        {
+            wallsCount = walls1.Length;
+            if (GameObject.Find("Ball").GetComponent<Ball>().perfectStar)
+            {
+                GameObject.Find("Ball").GetComponent<Ball>().perfectStar = false;
+                score += PlayerPrefs.GetInt("Level") * 2;
+            }
+            else
+            {
+                score += PlayerPrefs.GetInt("Level");
+            }
+            print(score);
+        }
+    }
+
     void DeleteWalls()
     {
         walls2 = GameObject.FindGameObjectsWithTag("Fail");
@@ -58,11 +99,7 @@ public class GameController : MonoBehaviour
         {
             for (int i = 0; i < walls2.Length; i++)
             {
-                if(walls2[i].transform.parent.parent.parent.gameObject != null &&
-                    walls2[i].transform.parent.parent.parent.gameObject.name != "Helix")
-                    Destroy(walls2[i].transform.parent.parent.parent.gameObject);
-                else
-                    Destroy(walls2[i].transform.parent.parent.gameObject);
+                Destroy(walls2[i].transform.parent.gameObject);
             }
         }
 
@@ -75,16 +112,16 @@ public class GameController : MonoBehaviour
         {
             GameObject wall;
 
-            if(Random.value <= 0.2 && !colorBump)
+            if(Random.value <= 0.2 && !colorBump && PlayerPrefs.GetInt("Level") >= 3)
             {
                 colorBump = true;
                 wall = Instantiate(Resources.Load("Color Bump") as GameObject, transform.position, Quaternion.identity);
             }
-            else if (Random.value <= 0.2)
+            else if (Random.value <= 0.2 && PlayerPrefs.GetInt("Level") >= 6)
             {
                 wall = Instantiate(Resources.Load("Walls") as GameObject, transform.position, Quaternion.identity);
             }
-            else if (i >= wallsSpawnNumber - 1 && !colorBump)
+            else if (i >= wallsSpawnNumber - 1 && !colorBump && PlayerPrefs.GetInt("Level") >= 3)
             {
                 colorBump = true;
                 wall = Instantiate(Resources.Load("Color Bump") as GameObject, transform.position, Quaternion.identity);
