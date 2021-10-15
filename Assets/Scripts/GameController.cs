@@ -14,7 +14,10 @@ public class GameController : MonoBehaviour
 
     private GameObject[] walls2, walls1;
 
-    private int wallsSpawnNumber = 11, wallsCount = 0, score;
+    private Ball ball;
+
+    private int wallsSpawnNumber = 11, wallsCount = 0; 
+    public int score;
     private float z = 7;
 
     private bool colorBump;
@@ -22,6 +25,7 @@ public class GameController : MonoBehaviour
     {
         instance = this;
         PlayerPrefs.GetInt("Level", 1);
+        ball = GameObject.Find("Ball").GetComponent<Ball>();
     }
 
     void Start()
@@ -45,10 +49,12 @@ public class GameController : MonoBehaviour
         else if (PlayerPrefs.GetInt("Level") >= 5 && PlayerPrefs.GetInt("Level") <= 10)
         {
             wallsSpawnNumber = 13;
+            ball.SetSpeed(8f);
         }
         else
         {
             wallsSpawnNumber = 14;
+            ball.SetSpeed(10f);
         }
             z = 7;
 
@@ -68,6 +74,10 @@ public class GameController : MonoBehaviour
         Ball.SetColor(hitColor);
     }
 
+    public float GetFinishLineDistance()
+    {
+        return finishLine.transform.position.z;
+    }
     void SumUpWalls()
     {
         walls1 = GameObject.FindGameObjectsWithTag("Wall1");

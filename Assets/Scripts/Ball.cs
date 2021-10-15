@@ -13,12 +13,26 @@ public class Ball : MonoBehaviour
 
     private float height = 0.58f, speed = 6f, lerpAmount;
 
-    private bool move, isRising, gameOver;
+    private bool move, isRising, gameOver, displayed;
 
     public bool perfectStar;
 
+    private AudioSource failSound, hitSound, LevelCompleteSound;
+
+    public float GetSpeed()
+    {
+        return speed;
+    }
+    public void SetSpeed(float value)
+    {
+        this.speed = value;
+    }
+
     private void Awake()
     {
+        failSound = GameObject.Find("FailSound").GetComponent<AudioSource>();
+        hitSound = GameObject.Find("HitSound").GetComponent<AudioSource>();
+        LevelCompleteSound = GameObject.Find("LevelCompleteSound").GetComponent<AudioSource>();
         meshRenderer = GetComponent<MeshRenderer>();
         splash = transform.GetChild(0).GetComponent<SpriteRenderer>();
     }
@@ -39,6 +53,7 @@ public class Ball : MonoBehaviour
 
         transform.position = new Vector3(0, height, Ball.z);
 
+        displayed = false;
         UpdateColor();
     }
 
@@ -75,6 +90,19 @@ public class Ball : MonoBehaviour
     {
         if(other.tag == "Hit")
         {
+            if(perfectStar && !displayed)
+            {
+                displayed = true;
+                GameObject pointDisplay = Instantiate(Resources.Load("PointDisplay") as GameObject, transform.position, Quaternion.identity);
+                pointDisplay.GetComponent<PointDisplay>().SetText("PERFECT +" + PlayerPrefs.GetInt("Level") * 2);
+            }
+            else if(!perfectStar && !displayed)
+            {
+                displayed = true;
+                GameObject pointDisplay = Instantiate(Resources.Load("PointDisplay") as GameObject, transform.position, Quaternion.identity);
+                pointDisplay.GetComponent<PointDisplay>().SetText("+" + PlayerPrefs.GetInt("Level"));
+            }
+            hitSound.Play();
             Destroy(other.transform.parent.gameObject);
         }
         if(other.tag == "Bump")
@@ -97,6 +125,7 @@ public class Ball : MonoBehaviour
     }
     IEnumerator PlayNewLevel()
     {
+        LevelCompleteSound.Play();
         Camera.main.GetComponent<CameraFollow>().enabled = false;
         yield return new WaitForSeconds(1.5f);
         move = false;
@@ -109,6 +138,7 @@ public class Ball : MonoBehaviour
 
     IEnumerator GameOver()
     {
+        failSound.Play();
         gameOver = true;
         splash.color = currentColor;
         splash.transform.position = new Vector3(0, 0.7f, Ball.z - 0.05f);
